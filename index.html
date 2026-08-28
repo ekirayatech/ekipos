@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POS Bazar · Colegio Ekirayá</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --teal:#146455;
+    --teal-dk:#0d453a;
+    --sage:#E7EFE6;
+    --gold:#E8B23D;
+    --coral:#F0664B;
+    --ink:#1c2b27;
+    --paper:#FBF9F4;
+    --line: rgba(20,100,85,0.18);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    background: var(--sage);
+    color: var(--ink);
+    min-height:100vh;
+  }
+  .sans{ font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; }
+
+  header.top{
+    background: var(--teal);
+    color: var(--paper);
+    padding: 18px 20px 14px;
+    box-shadow: 0 2px 0 var(--gold);
+  }
+  header.top .toprow{ display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; }
+  header.top .brand{
+    display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+  }
+  header.top .brand h1{
+    margin:0; font-size:1.5rem; letter-spacing:0.5px; font-weight:normal;
+  }
+  header.top .brand .eyebrow{
+    font-family:-apple-system,Helvetica,Arial,sans-serif;
+    font-size:0.68rem; text-transform:uppercase; letter-spacing:2px;
+    color: var(--gold); opacity:0.95;
+  }
+  .session-badge{
+    font-family:-apple-system,Helvetica,Arial,sans-serif;
+    font-size:0.8rem; text-align:right; color:var(--paper);
+  }
+  .session-badge .who{ font-weight:bold; }
+  .session-badge .rol{ opacity:0.85; font-size:0.72rem; text-transform:uppercase; letter-spacing:1px; }
+  .session-badge button{
+    margin-top:4px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.35);
+    color:var(--paper); padding:4px 10px; border-radius:3px; cursor:pointer; font-size:0.72rem;
+  }
+  nav.tabs{
+    display:flex; gap:6px; margin-top:14px; flex-wrap:wrap;
+    font-family:-apple-system,Helvetica,Arial,sans-serif;
+  }
+  nav.tabs button{
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: var(--paper);
+    padding: 8px 14px;
+    border-radius: 3px 3px 0 0;
+    cursor:pointer;
+    font-size:0.85rem;
+    letter-spacing:0.3px;
+  }
+  nav.tabs button.active{
+    background: var(--paper);
+    color: var(--teal-dk);
+    border-color: var(--paper);
+    font-weight:bold;
+  }
+  main{ max-width: 980px; margin: 0 auto; padding: 22px 18px 60px; }
+
+  .card{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 22px;
+    margin-bottom: 18px;
+  }
+  .card h2{ margin-top:0; font-weight:normal; font-size:1.25rem; color:var(--teal-dk); }
+  .card h2 .num{ color:var(--gold); font-style:italic; margin-right:6px; }
+
+  label{ display:block; font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:0.72rem; text-transform:uppercase; letter-spacing:1.2px; color:var(--teal-dk); margin-bottom:5px; }
+  input[type=text], input[type=number], input[type=password], select{
+    width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:4px;
+    font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:0.95rem; background:#fff; color:var(--ink);
+  }
+  input:focus, select:focus, button:focus{ outline: 2px solid var(--coral); outline-offset:1px; }
+
+  .row{ display:flex; gap:14px; flex-wrap:wrap; }
+  .row > div{ flex:1; min-width:150px; }
+
+  .caja-choice{ display:flex; gap:10px; }
+  .caja-choice label.opt{
+    flex:1; text-align:center; padding:10px; border:1px solid var(--line); border-radius:4px;
+    cursor:pointer; text-transform:none; letter-spacing:0; font-size:0.95rem; font-family:'Georgia',serif;
+  }
+  .caja-choice input{ display:none; }
+  .caja-choice input:checked + label.opt{ background: var(--teal); color:#fff; border-color:var(--teal); font-weight:bold;}
+  .caja-fija{
+    display:inline-block; background:var(--teal); color:#fff; padding:8px 16px; border-radius:4px; font-weight:bold;
+  }
+
+  button.btn{
+    font-family:-apple-system,Helvetica,Arial,sans-serif;
+    background: var(--teal); color:#fff; border:none; padding:10px 18px;
+    border-radius:4px; cursor:pointer; font-size:0.9rem; letter-spacing:0.3px;
+  }
+  button.btn:hover{ background: var(--teal-dk); }
+  button.btn.gold{ background: var(--gold); color: var(--teal-dk); font-weight:bold; }
+  button.btn.gold:hover{ background:#d19c2c; }
+  button.btn.coral{ background: var(--coral); }
+  button.btn.coral:hover{ background:#d84e34; }
+  button.btn.ghost{ background:transparent; color:var(--teal-dk); border:1px solid var(--line); }
+  button.btn:disabled{ opacity:0.45; cursor:not-allowed; }
+
+  table.cart{ width:100%; border-collapse:collapse; margin-top:14px; font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:0.88rem; }
+  table.cart th{ text-align:left; border-bottom:2px solid var(--teal); padding:6px 8px; color:var(--teal-dk); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.8px; }
+  table.cart td{ padding:7px 8px; border-bottom:1px solid var(--line); }
+  table.cart tfoot td{ font-weight:bold; border-top:2px solid var(--teal); border-bottom:none; }
+  .rm{ background:none; border:none; color:var(--coral); cursor:pointer; font-family:-apple-system,sans-serif; font-size:0.85rem; }
+
+  /* Ticket */
+  .ticket-wrap{ display:flex; justify-content:center; padding: 10px 0 4px; }
+  .ticket{
+    position:relative; width:100%; max-width:340px; background:#fff;
+    border:1.5px dashed var(--teal); border-radius:4px; padding:26px 20px 22px; text-align:center;
+  }
+  .ticket::before, .ticket::after{
+    content:""; position:absolute; top:50%; width:20px; height:20px; background:var(--sage);
+    border-radius:50%; transform:translateY(-50%);
+  }
+  .ticket::before{ left:-11px; }
+  .ticket::after{ right:-11px; }
+  .ticket .eyebrow{ font-family:-apple-system,sans-serif; font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:var(--teal); }
+  .ticket .code{ font-size:3.4rem; color:var(--coral); font-weight:bold; line-height:1.1; margin:6px 0; font-family:'Georgia',serif; }
+  .ticket .meta{ font-family:-apple-system,sans-serif; font-size:0.82rem; color:var(--ink); opacity:0.85; }
+  .ticket hr{ border:none; border-top:1px dashed var(--line); margin:14px 0; }
+  .ticket .items{ text-align:left; font-family:-apple-system,sans-serif; font-size:0.85rem; }
+  .ticket .items div{ display:flex; justify-content:space-between; padding:2px 0; }
+
+  /* Despacho */
+  .grid-cards{ display:grid; grid-template-columns: repeat(auto-fill, minmax(230px,1fr)); gap:14px; }
+  .pedido-card{
+    background:#fff; border:1px solid var(--line); border-left:6px solid var(--gold); border-radius:5px; padding:14px;
+  }
+  .pedido-card .codigo{ font-size:2rem; color:var(--coral); font-weight:bold; }
+  .pedido-card .cliente{ font-family:-apple-system,sans-serif; font-weight:bold; margin:2px 0 6px; }
+  .pedido-card ul{ font-family:-apple-system,sans-serif; font-size:0.82rem; padding-left:18px; margin:0 0 10px; }
+  .pedido-card .tag{ font-family:-apple-system,sans-serif; font-size:0.68rem; text-transform:uppercase; letter-spacing:1px; color:var(--teal-dk); background:var(--sage); display:inline-block; padding:2px 7px; border-radius:3px; margin-bottom:6px; }
+  .empty{ font-family:-apple-system,sans-serif; color:#7a8f8a; padding:30px; text-align:center; }
+
+  .stats-grid{ display:grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:10px; }
+  .stat{ background:#fff; border:1px solid var(--line); border-radius:5px; padding:14px; text-align:center; }
+  .stat .v{ font-size:1.7rem; color:var(--teal-dk); font-weight:bold; }
+  .stat .l{ font-family:-apple-system,sans-serif; font-size:0.68rem; text-transform:uppercase; letter-spacing:1px; color:#5c716b; }
+
+  table.report{ width:100%; border-collapse:collapse; font-family:-apple-system,sans-serif; font-size:0.85rem; }
+  table.report th{ text-align:left; background:var(--sage); padding:7px 9px; color:var(--teal-dk); }
+  table.report td{ padding:7px 9px; border-bottom:1px solid var(--line); }
+
+  .msg{ font-family:-apple-system,sans-serif; font-size:0.85rem; padding:10px 12px; border-radius:4px; margin-bottom:12px; }
+  .msg.ok{ background:#e5f3ea; color:#1f6b3a; border:1px solid #b9dfc6; }
+  .msg.err{ background:#fbe9e6; color:#a3341f; border:1px solid #f0b7ab; }
+
+  .home-grid{ display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+  .home-tile{ background:#fff; border:1px solid var(--line); border-radius:6px; padding:24px; cursor:pointer; text-align:left; }
+  .home-tile:hover{ border-color:var(--teal); }
+  .home-tile .t{ font-size:1.15rem; color:var(--teal-dk); margin-bottom:6px; }
+  .home-tile .d{ font-family:-apple-system,sans-serif; font-size:0.82rem; color:#5c716b; }
+
+  footer.hint{ font-family:-apple-system,sans-serif; font-size:0.72rem; color:#6d827c; text-align:center; padding:14px; }
+
+  /* Login */
+  .login-wrap{ display:flex; justify-content:center; padding: 40px 12px; }
+  .login-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:32px;
+    max-width:380px; width:100%; box-shadow:0 8px 24px rgba(13,69,58,0.08);
+  }
+  .login-card .eyebrow{ font-family:-apple-system,sans-serif; font-size:0.68rem; letter-spacing:2px; text-transform:uppercase; color:var(--gold); }
+  .login-card h2{ margin:4px 0 20px; color:var(--teal-dk); font-weight:normal; }
+  .login-card label{ margin-top:12px; }
+  .login-card label:first-of-type{ margin-top:0; }
+
+  /* Usuarios */
+  table.users{ width:100%; border-collapse:collapse; font-family:-apple-system,sans-serif; font-size:0.85rem; margin-bottom:20px; }
+  table.users th{ text-align:left; background:var(--sage); padding:7px 9px; color:var(--teal-dk); }
+  table.users td{ padding:7px 9px; border-bottom:1px solid var(--line); }
+  table.users .rol-pill{ font-size:0.68rem; text-transform:uppercase; letter-spacing:0.5px; padding:2px 8px; border-radius:10px; background:var(--sage); color:var(--teal-dk); }
+  .link-btn{ background:none; border:none; color:var(--teal); cursor:pointer; font-family:-apple-system,sans-serif; font-size:0.8rem; text-decoration:underline; padding:0; margin-right:10px; }
+  .link-btn.danger{ color:var(--coral); }
+
+  .perfil-box{ display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+  .perfil-avatar{
+    width:52px; height:52px; border-radius:50%; background:var(--teal); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:1.3rem; font-family:-apple-system,sans-serif; font-weight:bold;
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="toprow">
+    <div class="brand">
+      <h1>Bazar Ekirayá</h1>
+      <span class="eyebrow">Punto de venta</span>
+    </div>
+    <div id="session-badge"></div>
+  </div>
+  <nav class="tabs" id="tabs"></nav>
+</header>
+
+<main id="app"></main>
+<footer class="hint">Los datos de ventas se comparten en tiempo real entre las cajas y la pantalla de despacho.</footer>
+
+<script>
+const STORAGE_KEY = 'bazar-pos-data';
+const DEFAULT_PRODUCTOS = [
+  { id:'te', nombre:'Té', variantes:[ { id:'unico', nombre:'', precio:2000 } ] },
+  { id:'helado', nombre:'Helado', variantes:[
+    { id:'solo', nombre:'Solo', precio:3000 },
+    { id:'dos', nombre:'Con 2 toppings', precio:4000 },
+    { id:'tres', nombre:'Con 3 toppings', precio:5000 },
+    { id:'full', nombre:'Full (4 toppings)', precio:6000 }
+  ]},
+  { id:'nachos', nombre:'Nachos', variantes:[
+    { id:'solo', nombre:'Solo', precio:3500 },
+    { id:'dos', nombre:'Con 2 toppings', precio:4500 },
+    { id:'tres', nombre:'Con 3 toppings', precio:5500 },
+    { id:'full', nombre:'Full (4 toppings)', precio:6500 }
+  ]}
+];
+const DEFAULT_DATA = {
+  counter: 0,
+  orders: [],
+  productos: DEFAULT_PRODUCTOS,
+  usuarios: [
+    { id:'u-admin', usuario:'admin', pin:'1234', nombre:'Administrador', rol:'administrador', caja:null },
+    { id:'u-v1', usuario:'vendedor1', pin:'1111', nombre:'Vendedor Caja 1', rol:'vendedor', caja:1 },
+    { id:'u-v2', usuario:'vendedor2', pin:'2222', nombre:'Vendedor Caja 2', rol:'vendedor', caja:2 },
+    { id:'u-d1', usuario:'despachador', pin:'3333', nombre:'Despachador', rol:'despachador', caja:null }
+  ]
+};
+function migrarProductosDesdePrecios(precios){
+  return [
+    { id:'te', nombre:'Té', variantes:[ { id:'unico', nombre:'', precio:precios.te } ] },
+    { id:'helado', nombre:'Helado', variantes:[
+      { id:'solo', nombre:'Solo', precio:precios.helado.solo },
+      { id:'dos', nombre:'Con 2 toppings', precio:precios.helado.dos },
+      { id:'tres', nombre:'Con 3 toppings', precio:precios.helado.tres },
+      { id:'full', nombre:'Full (4 toppings)', precio:precios.helado.full }
+    ]},
+    { id:'nachos', nombre:'Nachos', variantes:[
+      { id:'solo', nombre:'Solo', precio:precios.nachos.solo },
+      { id:'dos', nombre:'Con 2 toppings', precio:precios.nachos.dos },
+      { id:'tres', nombre:'Con 3 toppings', precio:precios.nachos.tres },
+      { id:'full', nombre:'Full (4 toppings)', precio:precios.nachos.full }
+    ]}
+  ];
+}
+const ROL_LABEL = { vendedor:'Vendedor', despachador:'Despachador', administrador:'Administrador' };
+const ROLE_TABS = {
+  vendedor: [['venta','Registrar venta'],['perfil','Mi perfil']],
+  despachador: [['despacho','Pantalla de despacho'],['perfil','Mi perfil']],
+  administrador: [['home','Inicio'],['venta','Registrar venta'],['despacho','Despacho'],['ventas','Todas las ventas'],['productos','Productos'],['informe','Informe'],['usuarios','Usuarios'],['perfil','Mi perfil']]
+};
+const ROLE_DEFAULT_VIEW = { vendedor:'venta', despachador:'despacho', administrador:'home' };
+
+let memoryFallback = null;
+let usingFallback = false;
+
+let state = {
+  view: 'login',
+  currentUser: null,
+  loginUsuario: '',
+  loginPin: '',
+  loginError: null,
+  cajaSeleccionada: 1,
+  cart: [],
+  cliente: '',
+  formProducto: null,
+  formVariante: null,
+  formCantidad: 1,
+  lastTicket: null,
+  data: null,
+  msg: null,
+  editingUserId: null,
+  perfilMsg: null,
+  editOrder: null,
+  editFormProducto: null,
+  editFormVariante: null,
+  editFormCantidad: 1,
+  ventasFiltro: '',
+  editProducto: null
+};
+
+function money(n){ return '$' + Math.round(n).toLocaleString('es-CO'); }
+
+async function loadData(){
+  try{
+    const r = await window.storage.get(STORAGE_KEY, true);
+    return r ? JSON.parse(r.value) : null;
+  }catch(e){
+    usingFallback = true;
+    return memoryFallback;
+  }
+}
+async function ensureData(){
+  let d = await loadData();
+  if(!d){
+    d = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    await saveData(d);
+  }
+  if(!d.usuarios || !d.usuarios.length){
+    d.usuarios = JSON.parse(JSON.stringify(DEFAULT_DATA.usuarios));
+    await saveData(d);
+  }
+  if(!d.productos || !d.productos.length){
+    d.productos = d.precios ? migrarProductosDesdePrecios(d.precios) : JSON.parse(JSON.stringify(DEFAULT_PRODUCTOS));
+    delete d.precios;
+    await saveData(d);
+  }
+  return d;
+}
+async function saveData(d){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(d), true);
+  }catch(e){
+    usingFallback = true;
+    memoryFallback = d;
+  }
+}
+
+// ---------- Utilidades de productos ----------
+function getProducto(id){ return state.data.productos.find(p=>p.id===id); }
+function esProductoSimple(producto){ return producto.variantes.length <= 1; }
+function precioDeVariante(producto, varianteId){
+  const v = producto.variantes.find(v=>v.id===varianteId);
+  return v ? v.precio : 0;
+}
+function labelDeVariante(producto, varianteId){
+  if(esProductoSimple(producto)) return producto.variantes[0].nombre || null;
+  const v = producto.variantes.find(v=>v.id===varianteId);
+  return v ? v.nombre : null;
+}
+
+function allowedTabsFor(rol){ return ROLE_TABS[rol] || []; }
+
+function render(){
+  // guard: si hay usuario logueado pero la vista actual no le pertenece, redirigir
+  if(state.currentUser){
+    const allowed = allowedTabsFor(state.currentUser.rol).map(t=>t[0]);
+    if(!allowed.includes(state.view)){
+      state.view = ROLE_DEFAULT_VIEW[state.currentUser.rol];
+    }
+  } else if(state.view !== 'login'){
+    state.view = 'login';
+  }
+
+  renderSessionBadge();
+  renderTabs();
+  const app = document.getElementById('app');
+  if(state.view === 'login') app.innerHTML = renderLogin();
+  else if(state.view === 'home') app.innerHTML = renderHome();
+  else if(state.view === 'venta') app.innerHTML = renderVenta();
+  else if(state.view === 'despacho') app.innerHTML = renderDespacho();
+  else if(state.view === 'informe') app.innerHTML = renderInforme();
+  else if(state.view === 'ventas') app.innerHTML = renderVentas();
+  else if(state.view === 'usuarios') app.innerHTML = renderUsuarios();
+  else if(state.view === 'productos') app.innerHTML = renderProductos();
+  else if(state.view === 'perfil') app.innerHTML = renderPerfil();
+  attachHandlers();
+}
+
+function renderSessionBadge(){
+  const el = document.getElementById('session-badge');
+  if(!state.currentUser){ el.innerHTML = ''; return; }
+  const u = state.currentUser;
+  el.innerHTML = `
+    <div class="session-badge">
+      <div class="who">${u.nombre}</div>
+      <div class="rol">${ROL_LABEL[u.rol]}${u.caja ? ' · Caja '+u.caja : ''}</div>
+      <button id="btn-logout">Cerrar sesión</button>
+    </div>`;
+}
+
+function renderTabs(){
+  if(!state.currentUser){ document.getElementById('tabs').innerHTML = ''; return; }
+  const tabs = allowedTabsFor(state.currentUser.rol);
+  document.getElementById('tabs').innerHTML = tabs.map(([k,l]) =>
+    `<button data-tab="${k}" class="${state.view===k?'active':''}">${l}</button>`
+  ).join('');
+}
+
+function renderLogin(){
+  const usuarios = (state.data && state.data.usuarios) ? state.data.usuarios : [];
+  return `
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="eyebrow">Acceso</div>
+      <h2>Inicia sesión</h2>
+      ${state.loginError ? `<div class="msg err">${state.loginError}</div>` : ''}
+      <label>Usuario</label>
+      <select id="login-usuario">
+        <option value="">Selecciona tu usuario…</option>
+        ${usuarios.map(u=>`<option value="${u.usuario}" ${state.loginUsuario===u.usuario?'selected':''}>${u.nombre} — ${ROL_LABEL[u.rol]}</option>`).join('')}
+      </select>
+      <label>PIN</label>
+      <input type="password" id="login-pin" inputmode="numeric" placeholder="••••" value="${state.loginPin}">
+      <div style="margin-top:20px;">
+        <button class="btn coral" id="btn-login" style="width:100%;">Ingresar</button>
+      </div>
+      <p class="sans" style="font-size:0.75rem;color:#7a8f8a;margin-top:16px;">Cuenta de prueba del administrador: <strong>admin</strong> / PIN <strong>1234</strong></p>
+    </div>
+  </div>`;
+}
+
+function renderHome(){
+  return `
+  <div class="home-grid">
+    <div class="home-tile" data-goto="venta">
+      <div class="t">🧾 Registrar venta</div>
+      <div class="d">Formulario de caja: elige la caja, el cliente y el pedido (té, helado o nachos con sus toppings). Genera el código de reclamo.</div>
+    </div>
+    <div class="home-tile" data-goto="despacho">
+      <div class="t">📣 Pantalla de despacho</div>
+      <div class="d">Muestra a quien entrega los pedidos el código y la descripción de cada venta pendiente.</div>
+    </div>
+    <div class="home-tile" data-goto="ventas">
+      <div class="t">📝 Todas las ventas</div>
+      <div class="d">Busca, edita o elimina cualquier venta registrada por cualquiera de las dos cajas.</div>
+    </div>
+    <div class="home-tile" data-goto="informe">
+      <div class="t">📊 Informe de ventas</div>
+      <div class="d">Estadísticas en vivo y descarga del informe en Excel con totales por producto y por caja.</div>
+    </div>
+    <div class="home-tile" data-goto="usuarios">
+      <div class="t">👥 Usuarios</div>
+      <div class="d">Crea y administra las cuentas de vendedores, despachador y administrador.</div>
+    </div>
+    <div class="home-tile" data-goto="productos">
+      <div class="t">🛒 Productos</div>
+      <div class="d">Edita los precios existentes, agrega nuevas presentaciones o crea artículos nuevos para vender.</div>
+    </div>
+  </div>`;
+}
+
+function variantesHtml(){
+  const producto = getProducto(state.formProducto);
+  if(!producto || esProductoSimple(producto)) return '';
+  return `
+  <div>
+    <label>Presentación</label>
+    <select id="sel-variante">
+      ${producto.variantes.map(v =>
+        `<option value="${v.id}" ${state.formVariante===v.id?'selected':''}>${v.nombre} — ${money(v.precio)}</option>`
+      ).join('')}
+    </select>
+  </div>`;
+}
+
+function canManageOrder(o){
+  const u = state.currentUser;
+  if(!u) return false;
+  if(u.rol === 'administrador') return true;
+  return u.rol === 'vendedor' && o.vendedorId === u.id && o.estado === 'pendiente';
+}
+
+function editVariantesHtml(){
+  const producto = getProducto(state.editFormProducto);
+  if(!producto || esProductoSimple(producto)) return '';
+  return `
+  <div>
+    <label>Presentación</label>
+    <select id="edit-sel-variante">
+      ${producto.variantes.map(v =>
+        `<option value="${v.id}" ${state.editFormVariante===v.id?'selected':''}>${v.nombre} — ${money(v.precio)}</option>`
+      ).join('')}
+    </select>
+  </div>`;
+}
+
+function renderEditOrderForm(){
+  const eo = state.editOrder;
+  const total = eo.items.reduce((s,i)=>s+i.subtotal,0);
+  const isAdmin = state.currentUser.rol === 'administrador';
+  return `
+  ${state.msg ? `<div class="msg ${state.msg.type}">${state.msg.text}</div>` : ''}
+  <div class="card">
+    <h2>Editar venta #${String(eo.numero).padStart(3,'0')}</h2>
+    <div class="row">
+      <div>
+        <label>Caja</label>
+        ${isAdmin ? `
+        <div class="caja-choice">
+          <input type="radio" id="edit-caja1" name="editcaja" value="1" ${eo.caja==1?'checked':''}>
+          <label class="opt" for="edit-caja1">Caja 1</label>
+          <input type="radio" id="edit-caja2" name="editcaja" value="2" ${eo.caja==2?'checked':''}>
+          <label class="opt" for="edit-caja2">Caja 2</label>
+        </div>` : `<span class="caja-fija">Caja ${eo.caja}</span>`}
+      </div>
+      <div>
+        <label>Cliente</label>
+        <input type="text" id="edit-inp-cliente" value="${eo.cliente}">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:1rem;">Productos</h2>
+    <div class="row">
+      <div>
+        <label>Producto</label>
+        <select id="edit-sel-producto">
+          ${state.data.productos.map(p=>`<option value="${p.id}" ${state.editFormProducto===p.id?'selected':''}>${p.nombre}</option>`).join('')}
+        </select>
+      </div>
+      <div id="edit-variante-wrap">${editVariantesHtml()}</div>
+      <div style="max-width:110px;">
+        <label>Cantidad</label>
+        <input type="number" id="edit-inp-cantidad" min="1" value="${state.editFormCantidad}">
+      </div>
+    </div>
+    <div style="margin-top:12px;"><button class="btn" id="edit-btn-agregar">+ Agregar producto</button></div>
+
+    ${eo.items.length ? `
+    <table class="cart">
+      <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead>
+      <tbody>
+        ${eo.items.map((it,idx)=>`
+        <tr>
+          <td>${it.nombre}${it.varianteLabel?' — '+it.varianteLabel:''}</td>
+          <td>${it.cantidad}</td>
+          <td>${money(it.precioUnit)}</td>
+          <td>${money(it.subtotal)}</td>
+          <td><button class="rm" data-edit-rm="${idx}">Quitar</button></td>
+        </tr>`).join('')}
+      </tbody>
+      <tfoot><tr><td colspan="3">Total</td><td colspan="2">${money(total)}</td></tr></tfoot>
+    </table>` : `<p class="sans" style="color:#7a8f8a;font-size:0.85rem;">Este pedido no tiene productos. Agrega al menos uno antes de guardar.</p>`}
+  </div>
+
+  <div class="card" style="text-align:right;">
+    <button class="btn ghost" id="btn-cancelar-edicion-orden">Cancelar</button>
+    <button class="btn coral" id="btn-guardar-edicion" style="margin-left:8px;" ${!eo.items.length?'disabled':''}>Guardar cambios</button>
+  </div>
+  `;
+}
+
+function misVentasHoyHtml(){
+  const u = state.currentUser;
+  if(u.rol !== 'vendedor') return '';
+  const mias = state.data.orders.filter(o=>o.vendedorId===u.id).sort((a,b)=>b.numero-a.numero).slice(0,8);
+  if(!mias.length) return '';
+  return `
+  <div class="card">
+    <h2 style="font-size:1rem;">Mis ventas recientes</h2>
+    <table class="report">
+      <thead><tr><th>Código</th><th>Cliente</th><th>Total</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        ${mias.map(o=>`
+        <tr>
+          <td>#${String(o.numero).padStart(3,'0')}</td>
+          <td>${o.cliente}</td>
+          <td>${money(o.total)}</td>
+          <td><span class="rol-pill">${o.estado==='entregado'?'Entregado':'Pendiente'}</span></td>
+          <td>
+            ${canManageOrder(o) ? `
+              <button class="link-btn" data-edit-order="${o.id}">Editar</button>
+              <button class="link-btn danger" data-del-order="${o.id}">Eliminar</button>
+            ` : `<span class="sans" style="font-size:0.75rem;color:#9fb0ab;">Ya despachado</span>`}
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderVenta(){
+  const d = state.data;
+  const total = state.cart.reduce((s,i)=>s+i.subtotal,0);
+  const u = state.currentUser;
+  const cajaFija = (u.rol === 'vendedor' && u.caja) ? u.caja : null;
+  if(cajaFija) state.cajaSeleccionada = cajaFija;
+
+  if(!getProducto(state.formProducto) && state.data.productos.length){
+    state.formProducto = state.data.productos[0].id;
+    state.formVariante = state.data.productos[0].variantes[0].id;
+  }
+
+  if(state.editOrder){
+    return renderEditOrderForm();
+  }
+
+  if(state.lastTicket){
+    const t = state.lastTicket;
+    return `
+    <div class="card">
+      <div class="ticket-wrap">
+        <div class="ticket">
+          <div class="eyebrow">Código de reclamo · Caja ${t.caja}</div>
+          <div class="code">#${String(t.numero).padStart(3,'0')}</div>
+          <div class="meta">${t.cliente} · ${t.hora}</div>
+          <hr>
+          <div class="items">
+            ${t.items.map(i=>`<div><span>${i.cantidad}× ${i.nombre}${i.varianteLabel?' ('+i.varianteLabel+')':''}</span><span>${money(i.subtotal)}</span></div>`).join('')}
+          </div>
+          <hr>
+          <div class="items"><div><strong>Total</strong><strong>${money(t.total)}</strong></div></div>
+        </div>
+      </div>
+      <p class="sans" style="text-align:center;color:#5c716b;font-size:0.85rem;">Entrega este código al cliente para reclamar su pedido en la pantalla de despacho.</p>
+      <div style="text-align:center;">
+        <button class="btn gold" id="btn-nueva-venta">Registrar otra venta</button>
+      </div>
+    </div>
+    ${misVentasHoyHtml()}`;
+  }
+
+  return `
+  ${state.msg ? `<div class="msg ${state.msg.type}">${state.msg.text}</div>` : ''}
+  <div class="card">
+    <h2><span class="num">1</span>Caja</h2>
+    ${cajaFija ? `
+      <span class="caja-fija">Caja ${cajaFija}</span>
+      <p class="sans" style="font-size:0.78rem;color:#7a8f8a;margin-top:8px;">Tu cuenta está asignada a esta caja.</p>
+    ` : `
+      <div class="caja-choice">
+        <input type="radio" id="caja1" name="caja" value="1" ${state.cajaSeleccionada==1?'checked':''}>
+        <label class="opt" for="caja1">Caja 1</label>
+        <input type="radio" id="caja2" name="caja" value="2" ${state.cajaSeleccionada==2?'checked':''}>
+        <label class="opt" for="caja2">Caja 2</label>
+      </div>
+    `}
+  </div>
+
+  <div class="card">
+    <h2><span class="num">2</span>Cliente</h2>
+    <label>Nombre del cliente</label>
+    <input type="text" id="inp-cliente" placeholder="Ej: Mariana Ríos" value="${state.cliente}">
+  </div>
+
+  <div class="card">
+    <h2><span class="num">3</span>Pedido</h2>
+    <div class="row">
+      <div>
+        <label>Producto</label>
+        <select id="sel-producto">
+          ${state.data.productos.map(p=>`<option value="${p.id}" ${state.formProducto===p.id?'selected':''}>${p.nombre}</option>`).join('')}
+        </select>
+      </div>
+      <div id="variante-wrap">${variantesHtml()}</div>
+      <div style="max-width:110px;">
+        <label>Cantidad</label>
+        <input type="number" id="inp-cantidad" min="1" value="${state.formCantidad}">
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <button class="btn" id="btn-agregar">+ Agregar al pedido</button>
+    </div>
+
+    ${state.cart.length ? `
+    <table class="cart">
+      <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead>
+      <tbody>
+        ${state.cart.map((it,idx)=>`
+        <tr>
+          <td>${it.nombre}${it.varianteLabel?' — '+it.varianteLabel:''}</td>
+          <td>${it.cantidad}</td>
+          <td>${money(it.precioUnit)}</td>
+          <td>${money(it.subtotal)}</td>
+          <td><button class="rm" data-rm="${idx}">Quitar</button></td>
+        </tr>`).join('')}
+      </tbody>
+      <tfoot><tr><td colspan="3">Total</td><td colspan="2">${money(total)}</td></tr></tfoot>
+    </table>` : `<p class="sans" style="color:#7a8f8a;font-size:0.85rem;">Aún no has agregado productos.</p>`}
+  </div>
+
+  <div class="card" style="text-align:right;">
+    <button class="btn coral" id="btn-confirmar" ${(!state.cart.length)?'disabled':''}>Confirmar venta y generar código</button>
+  </div>
+  ${misVentasHoyHtml()}
+  `;
+}
+
+function renderDespacho(){
+  const pendientes = state.data.orders.filter(o=>o.estado==='pendiente').sort((a,b)=>a.numero-b.numero);
+  const entregadosRecientes = state.data.orders.filter(o=>o.estado==='entregado').slice(-6).reverse();
+  return `
+  <div class="card">
+    <h2>Pedidos por entregar (${pendientes.length})</h2>
+    ${pendientes.length ? `
+    <div class="grid-cards">
+      ${pendientes.map(o=>`
+        <div class="pedido-card">
+          <span class="tag">Caja ${o.caja} · ${o.hora}</span>
+          <div class="codigo">#${String(o.numero).padStart(3,'0')}</div>
+          <div class="cliente">${o.cliente}</div>
+          <ul>${o.items.map(i=>`<li>${i.cantidad}× ${i.nombre}${i.varianteLabel?' ('+i.varianteLabel+')':''}</li>`).join('')}</ul>
+          <button class="btn gold" data-entregar="${o.id}">Marcar como entregado</button>
+        </div>
+      `).join('')}
+    </div>` : `<div class="empty sans">No hay pedidos pendientes por entregar.</div>`}
+  </div>
+  <div class="card">
+    <h2 style="font-size:1rem;">Entregados recientemente</h2>
+    ${entregadosRecientes.length ? `
+    <table class="report">
+      <thead><tr><th>Código</th><th>Cliente</th><th>Caja</th></tr></thead>
+      <tbody>
+        ${entregadosRecientes.map(o=>`<tr><td>#${String(o.numero).padStart(3,'0')}</td><td>${o.cliente}</td><td>${o.caja}</td></tr>`).join('')}
+      </tbody>
+    </table>` : `<p class="sans" style="color:#7a8f8a;">Todavía no se ha entregado ningún pedido.</p>`}
+  </div>
+  `;
+}
+
+function computeStats(){
+  const orders = state.data.orders;
+  const totalPedidos = orders.length;
+  const ingresoTotal = orders.reduce((s,o)=>s+o.total,0);
+  const unidades = orders.reduce((s,o)=>s+o.items.reduce((a,i)=>a+i.cantidad,0),0);
+  const porCaja = {1:0,2:0};
+  orders.forEach(o=>{ porCaja[o.caja] = (porCaja[o.caja]||0) + o.total; });
+
+  const porProducto = {};
+  orders.forEach(o=>o.items.forEach(i=>{
+    const key = i.nombre + (i.varianteLabel ? ' — '+i.varianteLabel : '');
+    if(!porProducto[key]) porProducto[key] = {cantidad:0, ingresos:0};
+    porProducto[key].cantidad += i.cantidad;
+    porProducto[key].ingresos += i.subtotal;
+  }));
+
+  return { totalPedidos, ingresoTotal, unidades, porCaja, porProducto,
+    promedio: totalPedidos ? ingresoTotal/totalPedidos : 0 };
+}
+
+function renderInforme(){
+  const s = computeStats();
+  return `
+  ${state.msg ? `<div class="msg ${state.msg.type}">${state.msg.text}</div>` : ''}
+  <div class="card">
+    <h2>Estadísticas en vivo</h2>
+    <div class="stats-grid">
+      <div class="stat"><div class="v">${s.totalPedidos}</div><div class="l">Pedidos</div></div>
+      <div class="stat"><div class="v">${s.unidades}</div><div class="l">Unidades vendidas</div></div>
+      <div class="stat"><div class="v">${money(s.ingresoTotal)}</div><div class="l">Ingreso total</div></div>
+      <div class="stat"><div class="v">${money(s.promedio)}</div><div class="l">Promedio por pedido</div></div>
+      <div class="stat"><div class="v">${money(s.porCaja[1]||0)}</div><div class="l">Ingreso caja 1</div></div>
+      <div class="stat"><div class="v">${money(s.porCaja[2]||0)}</div><div class="l">Ingreso caja 2</div></div>
+    </div>
+    <table class="report">
+      <thead><tr><th>Producto</th><th>Cantidad</th><th>Ingresos</th></tr></thead>
+      <tbody>
+        ${Object.entries(s.porProducto).length ? Object.entries(s.porProducto).map(([k,v])=>
+          `<tr><td>${k}</td><td>${v.cantidad}</td><td>${money(v.ingresos)}</td></tr>`).join('')
+          : `<tr><td colspan="3" class="sans" style="color:#7a8f8a;">Aún no hay ventas registradas.</td></tr>`}
+      </tbody>
+    </table>
+    <div style="margin-top:16px;">
+      <button class="btn gold" id="btn-excel">⬇ Descargar informe en Excel</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:1rem;">Reiniciar día</h2>
+    <p class="sans" style="font-size:0.82rem;color:#5c716b;">Borra todos los pedidos registrados. Los precios, productos y usuarios se conservan. Usa esto solo al iniciar un nuevo día de bazar.</p>
+    <button class="btn ghost" id="btn-reiniciar">Reiniciar ventas del día</button>
+  </div>
+  `;
+}
+
+function renderVentas(){
+  if(state.editOrder){
+    return renderEditOrderForm();
+  }
+  const filtro = (state.ventasFiltro||'').toLowerCase().trim();
+  let orders = [...state.data.orders].sort((a,b)=>b.numero-a.numero);
+  if(filtro){
+    orders = orders.filter(o =>
+      ('#'+String(o.numero).padStart(3,'0')).includes(filtro) ||
+      o.cliente.toLowerCase().includes(filtro) ||
+      (o.vendedor||'').toLowerCase().includes(filtro)
+    );
+  }
+  return `
+  ${state.msg ? `<div class="msg ${state.msg.type}">${state.msg.text}</div>` : ''}
+  <div class="card">
+    <h2>Todas las ventas (${state.data.orders.length})</h2>
+    <div style="max-width:300px;margin-bottom:14px;">
+      <label>Buscar por código, cliente o vendedor</label>
+      <input type="text" id="inp-buscar-venta" value="${state.ventasFiltro||''}">
+    </div>
+    <table class="report">
+      <thead><tr><th>Código</th><th>Caja</th><th>Cliente</th><th>Vendedor</th><th>Total</th><th>Estado</th><th>Hora</th><th></th></tr></thead>
+      <tbody>
+        ${orders.length ? orders.map(o=>`
+        <tr>
+          <td>#${String(o.numero).padStart(3,'0')}</td>
+          <td>${o.caja}</td>
+          <td>${o.cliente}</td>
+          <td>${o.vendedor||'—'}</td>
+          <td>${money(o.total)}</td>
+          <td><span class="rol-pill">${o.estado==='entregado'?'Entregado':'Pendiente'}</span>${o.editado?' <span class="rol-pill">Editado</span>':''}</td>
+          <td>${o.hora}</td>
+          <td>
+            <button class="link-btn" data-edit-order="${o.id}">Editar</button>
+            <button class="link-btn danger" data-del-order="${o.id}">Eliminar</button>
+          </td>
+        </tr>`).join('') : `<tr><td colspan="8" class="sans" style="color:#7a8f8a;">No se encontraron ventas.</td></tr>`}
+      </tbody>
+    </table>
+  </div>
+  `;
+}
+
+function renderEditProductoForm(){
+  const ep = state.editProducto;
+  const esNuevo = !ep.id;
+  return `
+  ${state.msg ? `<div class="msg ${state.msg.type}">${state.msg.text}</div>` : ''}
+  <div class="card">
+    <h2>${esNuevo ? 'Nuevo producto' : 'Editar producto'}</h2>
+    <label>Nombre del producto</label>
+    <input type="text" id="ep-nombre" value="${ep.nombre}" placeholder="Ej: Gaseosa, Perro caliente...">
+
+    <h2 style="font-size:1rem;margin-top:22px;">Presentaciones y precios</h2>
+    <p class="sans" style="font-size:0.78rem;color:#7a8f8a;">Si dejas un solo renglón sin nombre, el producto se venderá a precio único, sin pedir presentación. Si agregas más de un renglón, ponles nombre (por ejemplo "Solo", "Con 2 toppings") para que el vendedor pueda elegir.</p>
+    <table class="cart">
+      <thead><tr><th>Nombre de la presentación</th><th>Precio</th><th></th></tr></thead>
+      <tbody>
+        ${ep.variantes.map((v,idx)=>`
+        <tr>
+          <td><input type="text" class="ep-variante-nombre" data-idx="${idx}" value="${v.nombre}" placeholder="${ep.variantes.length<=1?'(precio único, sin nombre)':'Ej: Solo'}"></td>
+          <td style="max-width:140px;"><input type="number" class="ep-variante-precio" data-idx="${idx}" value="${v.precio}" min="0"></td>
+          <td><button class="rm" data-ep-rm="${idx}" ${ep.variantes.length<=1?'disabled':''}>Quitar</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <div style="margin-top:10px;">
+      <button class="btn ghost" id="ep-btn-agregar-variante">+ Agregar presentación</button>
+    </div>
+  </div>
+
+  <div class="card" style="text-align:right;">
+    <button class="btn ghost" id="btn-cancelar-producto">Cancelar</button>
+    <button class="btn coral" id="btn-guardar-producto" style="margin-left:8px;">Guardar producto</button>
+  </div>
+  `;
+}
+
+function renderProductos(){
+  if(state.editProducto){
+    return renderEditProductoForm();
+  }
+  const productos = state.data.productos;
+  return `
+  ${state.msg ? `<div class="msg ${state.msg.type}">${state.msg.text}</div>` : ''}
+  <div class="card">
+    <h2>Productos del bazar</h2>
+    <div style="margin-bottom:16px;">
+      <button class="btn gold" id="btn-nuevo-producto">+ Agregar nuevo producto</button>
+    </div>
+    <div class="grid-cards">
+      ${productos.map(p=>`
+        <div class="pedido-card" style="border-left-color: var(--teal);">
+          <div class="cliente" style="font-size:1.05rem;">${p.nombre}</div>
+          <ul>
+            ${p.variantes.map(v=>`<li>${v.nombre ? v.nombre+' — ' : ''}${money(v.precio)}</li>`).join('')}
+          </ul>
+          <button class="link-btn" data-edit-producto="${p.id}">Editar</button>
+          <button class="link-btn danger" data-del-producto="${p.id}">Eliminar</button>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+  `;
+}
+
+function renderUsuarios(){
+  const usuarios = state.data.usuarios;
+  const editing = state.editingUserId ? usuarios.find(u=>u.id===state.editingUserId) : null;
+  return `
+  ${state.msg ? `<div class="msg ${state.msg.type}">${state.msg.text}</div>` : ''}
+  <div class="card">
+    <h2>Cuentas del sistema</h2>
+    <table class="users">
+      <thead><tr><th>Nombre</th><th>Usuario</th><th>PIN</th><th>Rol</th><th>Caja</th><th></th></tr></thead>
+      <tbody>
+        ${usuarios.map(u=>`
+        <tr>
+          <td>${u.nombre}</td>
+          <td>${u.usuario}</td>
+          <td>${u.pin}</td>
+          <td><span class="rol-pill">${ROL_LABEL[u.rol]}</span></td>
+          <td>${u.caja || '—'}</td>
+          <td>
+            <button class="link-btn" data-edit-user="${u.id}">Editar</button>
+            <button class="link-btn danger" data-del-user="${u.id}">Eliminar</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+
+    <h2 style="font-size:1rem;">${editing ? 'Editar cuenta' : 'Crear nueva cuenta'}</h2>
+    <div class="row">
+      <div><label>Nombre</label><input type="text" id="u-nombre" value="${editing ? editing.nombre : ''}"></div>
+      <div><label>Usuario</label><input type="text" id="u-usuario" value="${editing ? editing.usuario : ''}"></div>
+      <div><label>PIN</label><input type="text" id="u-pin" value="${editing ? editing.pin : ''}"></div>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <div>
+        <label>Rol</label>
+        <select id="u-rol">
+          <option value="vendedor" ${editing && editing.rol==='vendedor'?'selected':''}>Vendedor</option>
+          <option value="despachador" ${editing && editing.rol==='despachador'?'selected':''}>Despachador</option>
+          <option value="administrador" ${editing && editing.rol==='administrador'?'selected':''}>Administrador</option>
+        </select>
+      </div>
+      <div id="u-caja-wrap">
+        <label>Caja asignada (solo vendedor)</label>
+        <select id="u-caja">
+          <option value="">Sin asignar (elige al vender)</option>
+          <option value="1" ${editing && editing.caja==1?'selected':''}>Caja 1</option>
+          <option value="2" ${editing && editing.caja==2?'selected':''}>Caja 2</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:14px;">
+      <button class="btn coral" id="btn-guardar-usuario">${editing ? 'Guardar cambios' : 'Crear usuario'}</button>
+      ${editing ? `<button class="btn ghost" id="btn-cancelar-edicion" style="margin-left:8px;">Cancelar</button>` : ''}
+    </div>
+  </div>
+  `;
+}
+
+function renderPerfil(){
+  const u = state.currentUser;
+  const inicial = u.nombre.charAt(0).toUpperCase();
+  return `
+  ${state.perfilMsg ? `<div class="msg ${state.perfilMsg.type}">${state.perfilMsg.text}</div>` : ''}
+  <div class="card">
+    <div class="perfil-box">
+      <div class="perfil-avatar">${inicial}</div>
+      <div>
+        <div class="sans" style="font-size:1.1rem;font-weight:bold;">${u.nombre}</div>
+        <div class="sans" style="font-size:0.8rem;color:#5c716b;">${ROL_LABEL[u.rol]}${u.caja ? ' · Caja asignada: '+u.caja : ''}</div>
+      </div>
+    </div>
+    <table class="report">
+      <tbody>
+        <tr><td>Usuario</td><td>${u.usuario}</td></tr>
+        <tr><td>Rol</td><td>${ROL_LABEL[u.rol]}</td></tr>
+        <tr><td>Caja asignada</td><td>${u.caja || 'No aplica / libre'}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:1rem;">Cambiar mi PIN</h2>
+    <div class="row">
+      <div><label>PIN actual</label><input type="password" id="pin-actual"></div>
+      <div><label>PIN nuevo</label><input type="password" id="pin-nuevo"></div>
+      <div><label>Confirmar PIN nuevo</label><input type="password" id="pin-confirmar"></div>
+    </div>
+    <div style="margin-top:14px;">
+      <button class="btn" id="btn-cambiar-pin">Actualizar PIN</button>
+    </div>
+  </div>
+  `;
+}
+
+function attachHandlers(){
+  const btnLogout = document.getElementById('btn-logout');
+  if(btnLogout) btnLogout.onclick = ()=>{
+    state.currentUser = null; state.view = 'login';
+    state.loginUsuario=''; state.loginPin=''; state.loginError=null;
+    state.cart=[]; state.cliente=''; state.lastTicket=null; state.msg=null;
+    render();
+  };
+
+  document.querySelectorAll('[data-tab]').forEach(b=>{
+    b.onclick = ()=>{ state.view = b.dataset.tab; state.msg=null; state.perfilMsg=null; render(); if(state.view==='despacho'||state.view==='informe') refreshLoop(); };
+  });
+  document.querySelectorAll('[data-goto]').forEach(b=>{
+    b.onclick = ()=>{ state.view = b.dataset.goto; render(); if(state.view==='despacho'||state.view==='informe') refreshLoop(); };
+  });
+
+  if(state.view === 'login'){
+    const selU = document.getElementById('login-usuario');
+    if(selU) selU.onchange = e=>{ state.loginUsuario = e.target.value; };
+    const inpPin = document.getElementById('login-pin');
+    if(inpPin) inpPin.oninput = e=>{ state.loginPin = e.target.value; };
+    const btnLogin = document.getElementById('btn-login');
+    if(btnLogin) btnLogin.onclick = hacerLogin;
+    if(inpPin) inpPin.addEventListener('keydown', e=>{ if(e.key==='Enter') hacerLogin(); });
+  }
+
+  if(state.editOrder){
+    const c1 = document.getElementById('edit-caja1'), c2 = document.getElementById('edit-caja2');
+    if(c1) c1.onchange = ()=>{ state.editOrder.caja = 1; };
+    if(c2) c2.onchange = ()=>{ state.editOrder.caja = 2; };
+
+    const inpCliente = document.getElementById('edit-inp-cliente');
+    if(inpCliente) inpCliente.oninput = e=>{ state.editOrder.cliente = e.target.value; };
+
+    const selProd = document.getElementById('edit-sel-producto');
+    if(selProd) selProd.onchange = e=>{
+      state.editFormProducto = e.target.value;
+      const producto = getProducto(state.editFormProducto);
+      state.editFormVariante = producto.variantes[0].id;
+      document.getElementById('edit-variante-wrap').innerHTML = editVariantesHtml();
+    };
+    const selVar = document.getElementById('edit-sel-variante');
+    if(selVar) selVar.onchange = e=>{ state.editFormVariante = e.target.value; };
+
+    const inpCant = document.getElementById('edit-inp-cantidad');
+    if(inpCant) inpCant.oninput = e=>{ state.editFormCantidad = Math.max(1, parseInt(e.target.value)||1); };
+
+    const btnAgregar = document.getElementById('edit-btn-agregar');
+    if(btnAgregar) btnAgregar.onclick = ()=>{
+      const producto = getProducto(state.editFormProducto);
+      const varianteId = esProductoSimple(producto) ? producto.variantes[0].id : state.editFormVariante;
+      const precio = precioDeVariante(producto, varianteId);
+      const varianteLabel = labelDeVariante(producto, varianteId);
+      state.editOrder.items.push({
+        producto: producto.id,
+        variante: varianteId,
+        varianteLabel,
+        nombre: producto.nombre,
+        cantidad: state.editFormCantidad,
+        precioUnit: precio,
+        subtotal: precio * state.editFormCantidad
+      });
+      state.editFormCantidad = 1;
+      render();
+    };
+
+    document.querySelectorAll('[data-edit-rm]').forEach(b=>{
+      b.onclick = ()=>{ state.editOrder.items.splice(parseInt(b.dataset.editRm),1); render(); };
+    });
+
+    const btnGuardarEdicion = document.getElementById('btn-guardar-edicion');
+    if(btnGuardarEdicion) btnGuardarEdicion.onclick = guardarEdicionOrden;
+    const btnCancelarEdicionOrden = document.getElementById('btn-cancelar-edicion-orden');
+    if(btnCancelarEdicionOrden) btnCancelarEdicionOrden.onclick = cancelEditOrder;
+  }
+
+  document.querySelectorAll('[data-edit-order]').forEach(b=>{
+    b.onclick = ()=>{
+      const o = state.data.orders.find(o=>o.id===b.dataset.editOrder);
+      if(o) startEditOrder(o);
+    };
+  });
+  document.querySelectorAll('[data-del-order]').forEach(b=>{
+    b.onclick = ()=>eliminarOrden(b.dataset.delOrder);
+  });
+
+  if(state.view === 'ventas'){
+    const inpBuscar = document.getElementById('inp-buscar-venta');
+    if(inpBuscar){
+      inpBuscar.oninput = e=>{ state.ventasFiltro = e.target.value; render(); };
+      // mantener el foco al re-renderizar mientras se escribe
+      inpBuscar.focus();
+      inpBuscar.selectionStart = inpBuscar.selectionEnd = inpBuscar.value.length;
+    }
+  }
+
+  if(state.view === 'venta'){
+    const c1 = document.getElementById('caja1'), c2 = document.getElementById('caja2');
+    if(c1) c1.onchange = ()=>{ state.cajaSeleccionada = 1; };
+    if(c2) c2.onchange = ()=>{ state.cajaSeleccionada = 2; };
+
+    const inpCliente = document.getElementById('inp-cliente');
+    if(inpCliente) inpCliente.oninput = e=>{ state.cliente = e.target.value; };
+
+    const selProd = document.getElementById('sel-producto');
+    if(selProd) selProd.onchange = e=>{
+      state.formProducto = e.target.value;
+      const producto = getProducto(state.formProducto);
+      state.formVariante = producto.variantes[0].id;
+      document.getElementById('variante-wrap').innerHTML = variantesHtml();
+    };
+    const selVar = document.getElementById('sel-variante');
+    if(selVar) selVar.onchange = e=>{ state.formVariante = e.target.value; };
+
+    const inpCant = document.getElementById('inp-cantidad');
+    if(inpCant) inpCant.oninput = e=>{ state.formCantidad = Math.max(1, parseInt(e.target.value)||1); };
+
+    const btnAgregar = document.getElementById('btn-agregar');
+    if(btnAgregar) btnAgregar.onclick = ()=>{
+      const producto = getProducto(state.formProducto);
+      const varianteId = esProductoSimple(producto) ? producto.variantes[0].id : state.formVariante;
+      const precio = precioDeVariante(producto, varianteId);
+      const varianteLabel = labelDeVariante(producto, varianteId);
+      state.cart.push({
+        producto: producto.id,
+        variante: varianteId,
+        varianteLabel,
+        nombre: producto.nombre,
+        cantidad: state.formCantidad,
+        precioUnit: precio,
+        subtotal: precio * state.formCantidad
+      });
+      state.formCantidad = 1;
+      render();
+    };
+
+    document.querySelectorAll('[data-rm]').forEach(b=>{
+      b.onclick = ()=>{ state.cart.splice(parseInt(b.dataset.rm),1); render(); };
+    });
+
+    const btnConfirmar = document.getElementById('btn-confirmar');
+    if(btnConfirmar) btnConfirmar.onclick = confirmarVenta;
+
+    const btnNueva = document.getElementById('btn-nueva-venta');
+    if(btnNueva) btnNueva.onclick = ()=>{
+      state.lastTicket = null; state.cart = []; state.cliente=''; state.msg=null; render();
+    };
+  }
+
+  if(state.view === 'despacho'){
+    document.querySelectorAll('[data-entregar]').forEach(b=>{
+      b.onclick = ()=>marcarEntregado(b.dataset.entregar);
+    });
+  }
+
+  if(state.view === 'informe'){
+    const btnExcel = document.getElementById('btn-excel');
+    if(btnExcel) btnExcel.onclick = descargarExcel;
+    const btnReiniciar = document.getElementById('btn-reiniciar');
+    if(btnReiniciar) btnReiniciar.onclick = reiniciarDia;
+  }
+
+  if(state.view === 'usuarios'){
+    document.querySelectorAll('[data-edit-user]').forEach(b=>{
+      b.onclick = ()=>{ state.editingUserId = b.dataset.editUser; state.msg=null; render(); };
+    });
+    document.querySelectorAll('[data-del-user]').forEach(b=>{
+      b.onclick = ()=>eliminarUsuario(b.dataset.delUser);
+    });
+    const btnGuardarU = document.getElementById('btn-guardar-usuario');
+    if(btnGuardarU) btnGuardarU.onclick = guardarUsuario;
+    const btnCancelar = document.getElementById('btn-cancelar-edicion');
+    if(btnCancelar) btnCancelar.onclick = ()=>{ state.editingUserId = null; render(); };
+  }
+
+  if(state.view === 'productos'){
+    const btnNuevo = document.getElementById('btn-nuevo-producto');
+    if(btnNuevo) btnNuevo.onclick = startNewProducto;
+    document.querySelectorAll('[data-edit-producto]').forEach(b=>{
+      b.onclick = ()=>{
+        const producto = state.data.productos.find(p=>p.id===b.dataset.editProducto);
+        if(producto) startEditProducto(producto);
+      };
+    });
+    document.querySelectorAll('[data-del-producto]').forEach(b=>{
+      b.onclick = ()=>eliminarProducto(b.dataset.delProducto);
+    });
+  }
+
+  if(state.editProducto){
+    const inpNombre = document.getElementById('ep-nombre');
+    if(inpNombre) inpNombre.oninput = e=>{ state.editProducto.nombre = e.target.value; };
+
+    document.querySelectorAll('.ep-variante-nombre').forEach(inp=>{
+      inp.oninput = e=>{ state.editProducto.variantes[parseInt(e.target.dataset.idx)].nombre = e.target.value; };
+    });
+    document.querySelectorAll('.ep-variante-precio').forEach(inp=>{
+      inp.oninput = e=>{ state.editProducto.variantes[parseInt(e.target.dataset.idx)].precio = parseFloat(e.target.value)||0; };
+    });
+    document.querySelectorAll('[data-ep-rm]').forEach(b=>{
+      b.onclick = ()=>{
+        if(state.editProducto.variantes.length <= 1) return;
+        state.editProducto.variantes.splice(parseInt(b.dataset.epRm),1);
+        render();
+      };
+    });
+    const btnAgregarVariante = document.getElementById('ep-btn-agregar-variante');
+    if(btnAgregarVariante) btnAgregarVariante.onclick = ()=>{
+      state.editProducto.variantes.push({ id:'v'+Date.now(), nombre:'', precio:0 });
+      render();
+    };
+    const btnGuardarProducto = document.getElementById('btn-guardar-producto');
+    if(btnGuardarProducto) btnGuardarProducto.onclick = guardarProducto;
+    const btnCancelarProducto = document.getElementById('btn-cancelar-producto');
+    if(btnCancelarProducto) btnCancelarProducto.onclick = cancelEditProducto;
+  }
+
+  if(state.view === 'perfil'){
+    const btnPin = document.getElementById('btn-cambiar-pin');
+    if(btnPin) btnPin.onclick = cambiarPin;
+  }
+}
+
+async function hacerLogin(){
+  if(!state.loginUsuario){ state.loginError = 'Selecciona tu usuario.'; render(); return; }
+  const fresh = await ensureData();
+  state.data = fresh;
+  const u = fresh.usuarios.find(u=>u.usuario === state.loginUsuario);
+  if(!u || u.pin !== state.loginPin){
+    state.loginError = 'Usuario o PIN incorrecto.';
+    render();
+    return;
+  }
+  state.currentUser = u;
+  state.loginError = null;
+  state.loginPin = '';
+  state.view = ROLE_DEFAULT_VIEW[u.rol];
+  if(u.rol === 'vendedor' && u.caja) state.cajaSeleccionada = u.caja;
+  render();
+  if(state.view === 'despacho' || state.view === 'informe') refreshLoop();
+}
+
+async function confirmarVenta(){
+  if(!state.cliente.trim()){
+    state.msg = {type:'err', text:'Escribe el nombre del cliente antes de confirmar.'};
+    render();
+    return;
+  }
+  if(!state.cart.length){
+    state.msg = {type:'err', text:'Agrega al menos un producto al pedido.'};
+    render();
+    return;
+  }
+  const fresh = await ensureData();
+  const numero = fresh.counter + 1;
+  const total = state.cart.reduce((s,i)=>s+i.subtotal,0);
+  const order = {
+    id: 'o' + Date.now() + Math.floor(Math.random()*1000),
+    numero,
+    caja: state.cajaSeleccionada,
+    cliente: state.cliente.trim(),
+    items: state.cart,
+    total,
+    hora: new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
+    fecha: new Date().toISOString(),
+    vendedor: state.currentUser ? state.currentUser.nombre : '—',
+    vendedorId: state.currentUser ? state.currentUser.id : null,
+    estado: 'pendiente'
+  };
+  fresh.orders.push(order);
+  fresh.counter = numero;
+  await saveData(fresh);
+  state.data = fresh;
+  state.lastTicket = order;
+  state.msg = null;
+  render();
+}
+
+function startEditOrder(order){
+  if(!canManageOrder(order)){
+    state.msg = {type:'err', text:'No tienes permiso para editar esta venta.'};
+    render();
+    return;
+  }
+  state.editOrder = {
+    id: order.id,
+    numero: order.numero,
+    caja: order.caja,
+    cliente: order.cliente,
+    items: order.items.map(i=>({...i}))
+  };
+  state.editFormProducto = state.data.productos[0].id;
+  state.editFormVariante = state.data.productos[0].variantes[0].id;
+  state.editFormCantidad = 1;
+  state.msg = null;
+  render();
+}
+
+function cancelEditOrder(){
+  state.editOrder = null;
+  render();
+}
+
+async function guardarEdicionOrden(){
+  if(!state.editOrder.cliente.trim()){
+    state.msg = {type:'err', text:'El cliente no puede quedar vacío.'};
+    render(); return;
+  }
+  if(!state.editOrder.items.length){
+    state.msg = {type:'err', text:'La venta debe tener al menos un producto.'};
+    render(); return;
+  }
+  const fresh = await ensureData();
+  const idx = fresh.orders.findIndex(o=>o.id===state.editOrder.id);
+  if(idx === -1){
+    state.msg = {type:'err', text:'Esta venta ya no existe.'};
+    state.editOrder = null;
+    state.data = fresh;
+    render(); return;
+  }
+  const total = state.editOrder.items.reduce((s,i)=>s+i.subtotal,0);
+  fresh.orders[idx] = {
+    ...fresh.orders[idx],
+    caja: state.editOrder.caja,
+    cliente: state.editOrder.cliente.trim(),
+    items: state.editOrder.items,
+    total,
+    editado: true,
+    horaEdicion: new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})
+  };
+  await saveData(fresh);
+  state.data = fresh;
+  state.editOrder = null;
+  state.msg = {type:'ok', text:'Venta #'+String(fresh.orders[idx].numero).padStart(3,'0')+' actualizada.'};
+  render();
+}
+
+async function eliminarOrden(id){
+  const fresh = await ensureData();
+  const o = fresh.orders.find(o=>o.id===id);
+  if(!o) return;
+  if(!canManageOrder(o)){
+    state.msg = {type:'err', text:'No tienes permiso para eliminar esta venta.'};
+    state.data = fresh;
+    render(); return;
+  }
+  if(!confirm(`¿Eliminar la venta #${String(o.numero).padStart(3,'0')} de ${o.cliente}? Esta acción no se puede deshacer.`)) return;
+  fresh.orders = fresh.orders.filter(x=>x.id!==id);
+  await saveData(fresh);
+  state.data = fresh;
+  state.msg = {type:'ok', text:'Venta eliminada.'};
+  render();
+}
+
+async function marcarEntregado(id){
+  const fresh = await ensureData();
+  const o = fresh.orders.find(o=>o.id===id);
+  if(o){ o.estado = 'entregado'; o.horaEntrega = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}); }
+  await saveData(fresh);
+  state.data = fresh;
+  render();
+}
+
+function startNewProducto(){
+  state.editProducto = { id:null, nombre:'', variantes:[ { id:'v'+Date.now(), nombre:'', precio:0 } ] };
+  state.msg = null;
+  render();
+}
+
+function startEditProducto(producto){
+  state.editProducto = {
+    id: producto.id,
+    nombre: producto.nombre,
+    variantes: producto.variantes.map(v=>({...v}))
+  };
+  state.msg = null;
+  render();
+}
+
+function cancelEditProducto(){
+  state.editProducto = null;
+  render();
+}
+
+async function guardarProducto(){
+  const ep = state.editProducto;
+  if(!ep.nombre.trim()){
+    state.msg = {type:'err', text:'Ponle un nombre al producto.'};
+    render(); return;
+  }
+  if(!ep.variantes.length){
+    state.msg = {type:'err', text:'Agrega al menos una presentación con su precio.'};
+    render(); return;
+  }
+  if(ep.variantes.length > 1 && ep.variantes.some(v => !v.nombre.trim())){
+    state.msg = {type:'err', text:'Si hay más de una presentación, todas necesitan un nombre que las distinga.'};
+    render(); return;
+  }
+  if(ep.variantes.some(v => isNaN(v.precio) || v.precio < 0)){
+    state.msg = {type:'err', text:'Revisa que todos los precios sean números válidos.'};
+    render(); return;
+  }
+
+  const fresh = await ensureData();
+  const variantesLimpias = ep.variantes.map(v=>({ id:v.id, nombre:v.nombre.trim(), precio:Number(v.precio) }));
+
+  if(ep.id){
+    const idx = fresh.productos.findIndex(p=>p.id===ep.id);
+    if(idx !== -1) fresh.productos[idx] = { id:ep.id, nombre:ep.nombre.trim(), variantes:variantesLimpias };
+  } else {
+    fresh.productos.push({ id:'p'+Date.now(), nombre:ep.nombre.trim(), variantes:variantesLimpias });
+  }
+  await saveData(fresh);
+  state.data = fresh;
+  state.editProducto = null;
+  state.msg = {type:'ok', text: ep.id ? 'Producto actualizado.' : 'Producto creado.'};
+  render();
+}
+
+async function eliminarProducto(id){
+  const fresh = await ensureData();
+  if(fresh.productos.length <= 1){
+    state.msg = {type:'err', text:'Debe quedar al menos un producto disponible para vender.'};
+    render(); return;
+  }
+  const producto = fresh.productos.find(p=>p.id===id);
+  if(!confirm(`¿Eliminar "${producto ? producto.nombre : 'este producto'}"? Las ventas ya registradas con este producto no se ven afectadas.`)) return;
+  fresh.productos = fresh.productos.filter(p=>p.id!==id);
+  await saveData(fresh);
+  state.data = fresh;
+  state.msg = {type:'ok', text:'Producto eliminado.'};
+  render();
+}
+
+async function reiniciarDia(){
+  const confirmacion = prompt('Esta acción borrará todas las ventas registradas. Escribe REINICIAR para confirmar:');
+  if(confirmacion !== 'REINICIAR') return;
+  const fresh = await ensureData();
+  fresh.orders = [];
+  fresh.counter = 0;
+  await saveData(fresh);
+  state.data = fresh;
+  state.msg = {type:'ok', text:'Las ventas del día se reiniciaron. Los precios y usuarios se conservaron.'};
+  render();
+}
+
+async function guardarUsuario(){
+  const nombre = document.getElementById('u-nombre').value.trim();
+  const usuario = document.getElementById('u-usuario').value.trim().toLowerCase();
+  const pin = document.getElementById('u-pin').value.trim();
+  const rol = document.getElementById('u-rol').value;
+  const cajaVal = document.getElementById('u-caja').value;
+  const caja = (rol === 'vendedor' && cajaVal) ? parseInt(cajaVal) : null;
+
+  if(!nombre || !usuario || !pin){
+    state.msg = {type:'err', text:'Completa nombre, usuario y PIN.'};
+    render(); return;
+  }
+
+  const fresh = await ensureData();
+  const usuarioExistente = fresh.usuarios.find(u=>u.usuario===usuario && u.id !== state.editingUserId);
+  if(usuarioExistente){
+    state.msg = {type:'err', text:'Ese nombre de usuario ya existe. Elige otro.'};
+    render(); return;
+  }
+
+  if(state.editingUserId){
+    const idx = fresh.usuarios.findIndex(u=>u.id===state.editingUserId);
+    fresh.usuarios[idx] = { ...fresh.usuarios[idx], nombre, usuario, pin, rol, caja };
+    if(state.currentUser && state.currentUser.id === state.editingUserId) state.currentUser = fresh.usuarios[idx];
+    state.msg = {type:'ok', text:'Cuenta actualizada.'};
+  } else {
+    fresh.usuarios.push({ id: 'u'+Date.now(), nombre, usuario, pin, rol, caja });
+    state.msg = {type:'ok', text:'Cuenta creada.'};
+  }
+  await saveData(fresh);
+  state.data = fresh;
+  state.editingUserId = null;
+  render();
+}
+
+async function eliminarUsuario(id){
+  if(state.currentUser && state.currentUser.id === id){
+    state.msg = {type:'err', text:'No puedes eliminar la cuenta con la que iniciaste sesión.'};
+    render(); return;
+  }
+  if(!confirm('¿Eliminar esta cuenta? Esta acción no se puede deshacer.')) return;
+  const fresh = await ensureData();
+  fresh.usuarios = fresh.usuarios.filter(u=>u.id!==id);
+  await saveData(fresh);
+  state.data = fresh;
+  state.msg = {type:'ok', text:'Cuenta eliminada.'};
+  render();
+}
+
+async function cambiarPin(){
+  const actual = document.getElementById('pin-actual').value;
+  const nuevo = document.getElementById('pin-nuevo').value;
+  const confirmar = document.getElementById('pin-confirmar').value;
+
+  if(actual !== state.currentUser.pin){
+    state.perfilMsg = {type:'err', text:'Tu PIN actual no coincide.'};
+    render(); return;
+  }
+  if(!nuevo || nuevo !== confirmar){
+    state.perfilMsg = {type:'err', text:'El PIN nuevo y su confirmación no coinciden.'};
+    render(); return;
+  }
+  const fresh = await ensureData();
+  const idx = fresh.usuarios.findIndex(u=>u.id===state.currentUser.id);
+  fresh.usuarios[idx].pin = nuevo;
+  await saveData(fresh);
+  state.data = fresh;
+  state.currentUser = fresh.usuarios[idx];
+  state.perfilMsg = {type:'ok', text:'Tu PIN se actualizó correctamente.'};
+  render();
+}
+
+function descargarExcel(){
+  const orders = state.data.orders;
+  const s = computeStats();
+
+  const detalle = [];
+  orders.forEach(o=>{
+    o.items.forEach(i=>{
+      detalle.push({
+        'Código': '#'+String(o.numero).padStart(3,'0'),
+        'Caja': o.caja,
+        'Vendedor': o.vendedor || '—',
+        'Cliente': o.cliente,
+        'Hora': o.hora,
+        'Producto': i.nombre,
+        'Presentación': i.varianteLabel || '—',
+        'Cantidad': i.cantidad,
+        'Precio unitario': i.precioUnit,
+        'Subtotal': i.subtotal,
+        'Estado pedido': o.estado === 'entregado' ? 'Entregado' : 'Pendiente'
+      });
+    });
+  });
+
+  const resumenProducto = Object.entries(s.porProducto).map(([k,v])=>({
+    'Producto': k, 'Cantidad vendida': v.cantidad, 'Ingresos': v.ingresos
+  }));
+
+  const totales = [
+    {Indicador:'Total de pedidos', Valor: s.totalPedidos},
+    {Indicador:'Unidades vendidas', Valor: s.unidades},
+    {Indicador:'Ingreso total', Valor: s.ingresoTotal},
+    {Indicador:'Promedio por pedido', Valor: Math.round(s.promedio)},
+    {Indicador:'Ingreso caja 1', Valor: s.porCaja[1]||0},
+    {Indicador:'Ingreso caja 2', Valor: s.porCaja[2]||0},
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(totales), 'Totales');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(resumenProducto), 'Resumen por producto');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(detalle), 'Detalle de ventas');
+
+  const fecha = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `Informe_Ventas_Bazar_${fecha}.xlsx`);
+}
+
+let refreshTimer = null;
+function refreshLoop(){
+  if(refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(async ()=>{
+    if(state.view !== 'despacho' && state.view !== 'informe'){
+      clearInterval(refreshTimer); return;
+    }
+    const fresh = await loadData();
+    if(fresh){ state.data = fresh; render(); }
+  }, 4000);
+}
+
+async function init(){
+  state.data = await ensureData();
+  render();
+}
+init();
+</script>
+</body>
+</html>
